@@ -3,7 +3,7 @@ class CreateStations < ActiveRecord::Migration
     create_table :stations do |t|
       t.string :name
       t.float :lat
-      t.float :long
+      t.float :lon
       t.integer :dockcount
       t.string :landmark
       t.date :installation

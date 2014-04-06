@@ -19,7 +19,7 @@ ActiveRecord::Schema.define(version: 20140406011222) do
   create_table "stations", force: true do |t|
     t.string  "name"
     t.float   "lat"
-    t.float   "long"
+    t.float   "lon"
     t.integer "dockcount"
     t.string  "landmark"
     t.date    "installation"

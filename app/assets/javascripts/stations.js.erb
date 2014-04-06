@@ -1,0 +1,115 @@
+
+// Icons for map
+var lrgIcon = L.icon({
+  iconUrl: '<%= image_path "map-icon-hot.png" %>',
+  iconSize: [40,53]
+});
+
+var medIcon = L.icon({
+  iconUrl: '<%= image_path "map-icon-warm.png" %>',
+  iconSize: [30,39.75]
+});
+
+var smlIcon = L.icon({
+  iconUrl: '<%= image_path "map-icon-cool.png" %>',
+  iconSize: [20,26.5]
+});
+
+var ready;
+var currentCity = '';
+
+ready = function () {
+
+  // Instantiate map
+  var map = L.map('map');
+
+
+  // Add attribution
+  L.tileLayer('http://openmapsurfer.uni-hd.de/tiles/roads/x={x}&y={y}&z={z}', {
+    attribution: 'Imagery from <a href="http://giscience.uni-hd.de/">GIScience Research Group @ University of Heidelberg</a> &mdash; Map data <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+    maxZoom: 18
+  }).addTo(map);
+
+
+  // Add info box layer
+  var info = L.control();
+
+  // Add info box for station information
+  info.onAdd = function (map) {
+      this._div = L.DomUtil.create('div', 'station-info'); // create a div with a class "info"
+      this.update();
+      return this._div;
+  };
+
+  // Method that we will use to update the control based on feature properties passed
+  info.update = function (props) {
+      this._div.innerHTML = '<h4>Station Information</h4>' +  (props ?
+          '<b>' + props.name + ' Station</b><br>' + props.bikes + ' bikes<br>' + Number(props.start_trips).toLocaleString('en') + ' pickups<br>' + Number(props.end_trips).toLocaleString('en') + ' dropoffs'
+          : 'Hover over a station');
+  };
+
+
+  // Add info window to map
+  info.addTo(map);
+
+
+  // Function for each feature
+  function onEachFeature(feature,layer) {
+    layer.on({
+      mouseover: function () {
+        info.update(layer.feature.properties);
+      },
+      mouseout: function (e) {
+        info.update();
+      }
+    })
+  }
+
+  // Map layer for station markers
+  var stationsLayer = L.geoJson(null, {
+    onEachFeature: onEachFeature
+  }).addTo(map);
+
+
+  // Pull station maps based on city selected
+  $("#choose-city li a").click(function(e){
+    // Selected City
+    city = $(this).data('city');
+
+    // Set values of button to reflect current city
+    $(".btn:first-child").text($(this).text());
+    $(".btn:first-child").val($(this).text());
+
+    // Only get city station data if we don't already have it
+    if (currentCity != city) {
+      // Get list of stations
+      $.ajax({
+        dataType: 'text',
+        url: '/stations/by_city?city='+city,
+        success: function (data) {
+          geojson = $.parseJSON(data);
+
+          // Clear stationsLayer and add new data.
+          stationsLayer.clearLayers().addData(geojson);
+
+          // Recent map to fit marker bounds
+          map.fitBounds(stationsLayer.getBounds());
+
+        }
+      });
+    }
+
+    // Set currently selected city
+    currentCity = city;
+
+    // Ignore link click
+    e.preventDefault();
+  });
+
+  // Add SF layer
+  $('*[data-city="San Francisco"]').click();
+
+}
+
+$(document).ready(ready);
+$(document).on('page:load', ready);
