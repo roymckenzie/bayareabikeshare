@@ -36,16 +36,16 @@ ready = function () {
 
   // Add info box for station information
   info.onAdd = function (map) {
-      this._div = L.DomUtil.create('div', 'station-info'); // create a div with a class "info"
-      this.update();
-      return this._div;
+    this._div = L.DomUtil.create('div', 'station-info'); // create a div with a class "info"
+    this.update();
+    return this._div;
   };
 
   // Method that we will use to update the control based on feature properties passed
   info.update = function (props) {
-      this._div.innerHTML = '<h4>Station Information</h4>' +  (props ?
-          '<b>' + props.name + ' Station</b><br>' + props.bikes + ' bikes<br>' + Number(props.start_trips).toLocaleString('en') + ' pickups<br>' + Number(props.end_trips).toLocaleString('en') + ' dropoffs'
-          : 'Hover over a station');
+    this._div.innerHTML = '<h4>Station Information</h4>' +  (props ?
+      '<p><b>' + props.name + ' Station</b><br>' + props.bikes + ' bikes</p><p><strong>From Aug 29, 2013 to Feb 28, 2014</strong><br>' + Number(props.start_trips).toLocaleString('en') + ' pickups<br>' + Number(props.end_trips).toLocaleString('en') + ' dropoffs'
+      : '<p>Hover over a station</p>');
   };
 
 
