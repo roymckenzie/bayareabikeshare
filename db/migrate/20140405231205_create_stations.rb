@@ -7,8 +7,6 @@ class CreateStations < ActiveRecord::Migration
       t.integer :dockcount
       t.string :landmark
       t.date :installation
-
-      t.timestamps
     end
   end
 end

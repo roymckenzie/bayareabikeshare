@@ -8,9 +8,24 @@
 
 require 'csv'
 
-# Seed Stations model
+# Seed Station model
 Station.delete_all
-
 CSV.foreach("#{Rails.root}/db/seeds/stations.csv", :headers => true) do |row|
    Station.create!(row.to_hash)
+end
+
+# Seed Trip model
+Trip.delete_all
+CSV.foreach("#{Rails.root}/db/seeds/trips.csv", :headers => true) do |row|
+  Trip.create!({
+    :id => row[0],
+    :duration => row[1],
+    :start_date => (DateTime.strptime row[2], "%m/%d/%Y %H:%M"), 
+    :start_station => Station.find(row[3]),
+    :end_date => (DateTime.strptime row[5], "%m/%d/%Y %H:%M"), 
+    :end_station => Station.find(row[6]), 
+    :bike_id => row[8], 
+    :subscription => row[9], 
+    :zip => row[10],
+  })
 end

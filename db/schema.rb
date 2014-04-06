@@ -11,20 +11,32 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140405231205) do
+ActiveRecord::Schema.define(version: 20140406011222) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "stations", force: true do |t|
-    t.string   "name"
-    t.float    "lat"
-    t.float    "long"
-    t.integer  "dockcount"
-    t.string   "landmark"
-    t.date     "installation"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.string  "name"
+    t.float   "lat"
+    t.float   "long"
+    t.integer "dockcount"
+    t.string  "landmark"
+    t.date    "installation"
   end
+
+  create_table "trips", force: true do |t|
+    t.integer  "duration"
+    t.datetime "start_date"
+    t.integer  "start_station_id"
+    t.datetime "end_date"
+    t.integer  "end_station_id"
+    t.integer  "bike_id"
+    t.boolean  "subscription"
+    t.string   "zip"
+  end
+
+  add_index "trips", ["end_station_id"], name: "index_trips_on_end_station_id", using: :btree
+  add_index "trips", ["start_station_id"], name: "index_trips_on_start_station_id", using: :btree
 
 end
