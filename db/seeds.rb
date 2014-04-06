@@ -5,3 +5,12 @@
 #
 #   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
 #   Mayor.create(name: 'Emanuel', city: cities.first)
+
+require 'csv'
+
+# Seed Stations model
+Station.delete_all
+
+CSV.foreach("#{Rails.root}/db/seeds/stations.csv", :headers => true) do |row|
+   Station.create!(row.to_hash)
+end
