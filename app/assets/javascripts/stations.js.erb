@@ -44,7 +44,7 @@ ready = function () {
   // Method that we will use to update the control based on feature properties passed
   info.update = function (props) {
     this._div.innerHTML = '<h4>Station Information</h4>' +  (props ?
-      '<p><b>' + props.name + ' Station</b><br>' + props.bikes + ' bikes</p><p><strong>From Aug 29, 2013 to Feb 28, 2014</strong><br>' + Number(props.start_trips).toLocaleString('en') + ' pickups<br>' + Number(props.end_trips).toLocaleString('en') + ' dropoffs'
+      '<p><strong>' + props.name + ' Station</strong><br>' + props.bikes + ' bikes</p><p><strong>From Aug 29, 2013 to Feb 28, 2014</strong><br>' + Number(props.start_trips).toLocaleString('en') + ' pickups<br>' + Number(props.end_trips).toLocaleString('en') + ' dropoffs</p><p><strong>Popular Destinations</strong><br>{station.name}</p><p><strong>Popular Origins</strong><br>{station.name}</p>'
       : '<p>Hover over a station</p>');
   };
 
@@ -55,12 +55,20 @@ ready = function () {
 
   // Function for each feature
   function onEachFeature(feature,layer) {
+    var mouseout = true;
     layer.on({
       mouseover: function () {
         info.update(layer.feature.properties);
+        mouseout = true
       },
-      mouseout: function (e) {
-        info.update();
+      mouseout: function () {
+        if (mouseout === true) {
+          info.update();
+        }
+      },
+      click: function () {
+        info.update(layer.feature.properties);
+        mouseout = false
       }
     })
   }
