@@ -1,9 +1,37 @@
-<%=
-map(:center => {
-    :latlng => [37.7859915,-122.4079026],
-    :zoom => 14,
-  },
-  :markers => @station_coordinates
-)
 
+
+<div id="map"></div>
+
+
+<script>
+var lrgIcon = L.MakiMarkers.icon({icon: "bicycle", color: "#FF2D00", size: "l"});
+var medIcon = L.MakiMarkers.icon({icon: "bicycle", color: "#E85500", size: "m"});
+var smlIcon = L.MakiMarkers.icon({icon: "bicycle", color: "#E8A100", size: "s"});
+
+var map = L.map('map');
+
+map.setView([37.7859915, -122.4079026], 14)
+
+L.tileLayer('http://openmapsurfer.uni-hd.de/tiles/roads/x={x}&y={y}&z={z}', {
+  attribution: 'Imagery from <a href="http://giscience.uni-hd.de/">GIScience Research Group @ University of Heidelberg</a> &mdash; Map data <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+  maxZoom: 18
+}).addTo(map)
+
+<% @stations.each do |s|
+  icon = ''
+  trips = s.start_trips.count
+  case trips
+  when 0..1000
+    icon = 'smlIcon'
+  when 1001..5000
+    icon = 'medIcon'
+  when 5000..1000000000
+    icon = 'lrgIcon'
+  end
 %>
+
+  marker = L.marker([<%= s.lat %>,<%= s.long %>], {icon: <%= icon %>}).addTo(map);
+  marker.bindPopup('<strong><%= s.name %></strong><br><%= s.dockcount %> bikes<br><%= number_with_delimiter(s.start_trips.count) %> pickups<br><%= number_with_delimiter(s.end_trips.count) %> dropoffs');
+<% end %>
+
+</script>
