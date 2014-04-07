@@ -42,10 +42,15 @@ body {
   }
 
   .city-selection {
-    display: none;
+    margin-top: 0;
     z-index: 10000;
 
+    .city-selection-button {
+      display: none;
+    }
+
     #choose-city {
+      margin-top: 10px;
 
       button {
         background: #f8f8f8;

@@ -1,7 +1,6 @@
 class StationsController < ApplicationController
 
   def index
-
     @cities = Station.order(:landmark).uniq.pluck(:landmark)
 
     respond_to do |format|
@@ -25,6 +24,10 @@ class StationsController < ApplicationController
     }
 
     @stations.each do |s|
+      most_popular_end = s.start_trips.group_by(&:end_station_id).sort_by{|key, values| values.count}.reverse.first
+      most_popular_end_station = Station.find(most_popular_end[0])
+      most_popular_start = s.end_trips.group_by(&:start_station_id).sort_by{|key, values| values.count}.reverse.first
+      most_popular_start_station = Station.find(most_popular_start[0])
       @geojson << {
         type: 'Feature',
         geometry: {
@@ -35,7 +38,9 @@ class StationsController < ApplicationController
           name: s.name,
           bikes: s.dockcount,
           start_trips: s.start_trips.count,
-          end_trips: s.end_trips.count
+          end_trips: s.end_trips.count,
+          popular_dropoff: most_popular_end_station.name,
+          popular_pickup: most_popular_start_station.name
         }
       }
     end
