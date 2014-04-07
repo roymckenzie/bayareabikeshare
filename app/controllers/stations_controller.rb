@@ -4,6 +4,10 @@ class StationsController < ApplicationController
 
     @cities = Station.order(:landmark).uniq.pluck(:landmark)
 
+    respond_to do |format|
+      format.html
+      format.json { render json: @cities }
+    end
   end
 
   def by_city
@@ -14,6 +18,11 @@ class StationsController < ApplicationController
       @stations = Station.where(landmark: params[:city])
     end
     @geojson = Array.new
+
+    @geojson << {
+      city: params[:city],
+      station_count: @stations.count
+    }
 
     @stations.each do |s|
       @geojson << {

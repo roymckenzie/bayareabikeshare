@@ -25,10 +25,9 @@ ready = function () {
     zoomControl: false,
   });
 
-
   // Add attribution
   L.tileLayer('http://openmapsurfer.uni-hd.de/tiles/roads/x={x}&y={y}&z={z}', {
-    attribution: '<span class="hidden">Imagery from <a href="http://giscience.uni-hd.de/">GIScience Research Group @ University of Heidelberg</a> &mdash; Map data <a href="http://openstreetmap.org">OpenStreetMap</a> contributors</span><i class="glyphicon glyphicon-question-sign"></i>'}).addTo(map);
+    attribution: 'Imagery from <a href="http://giscience.uni-hd.de/">GIScience Research Group @ University of Heidelberg</a> &mdash; Map data <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'}).addTo(map);
 
 
   // Add info box layer
@@ -61,7 +60,22 @@ ready = function () {
 
   // Method that we will use to update the control based on feature properties passed
   citySelectionBox.update = function (props) {
-    this._div.innerHTML = '&nbsp';
+    this._div.innerHTML = '<div class="btn-group pull-right" id="choose-city"><button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Change City&nbsp;&nbsp;<span class="caret"></span></button><ul class="dropdown-menu" role="menu"><li class="divider"></li><li><a href="#" data-city="All Cities">All Cities</a></li></ul></div>';
+  };
+
+  // Add info box layer
+  var cityInfoBox = L.control();
+
+  // Add info box for station information
+  cityInfoBox.onAdd = function (map) {
+    this._div = L.DomUtil.create('div', 'city-info'); // create a div with a class "info"
+    this.update();
+    return this._div;
+  };
+
+  // Method that we will use to update the control based on feature properties passed
+  cityInfoBox.update = function (props) {
+    this._div.innerHTML = '<h4 class="current-city"><span class="city-name"></span></h4><p><strong>Stations</strong><br><span class="station-count"></span></p>';
   };
 
 
@@ -69,7 +83,25 @@ ready = function () {
   citySelectionBox.addTo(map);
 
   // Add info window to map
+  cityInfoBox.addTo(map);
+
+  // Add info window to map
   stationInfoBox.addTo(map);
+
+  // Get City List
+  var cityListHTML = '';
+  $.ajax({
+    dataType: 'text',
+    url: '/stations/index.json',
+    success: function (data) {
+      cities = $.parseJSON(data);
+      cities.forEach(function(city) {
+        cityListHTML += '<li><a href="#" data-city="' + city + '">' + city + '</a></li>';
+      });
+      $('#choose-city .dropdown-menu').prepend(cityListHTML);
+      $('*[data-city="San Francisco"]').click();
+    }
+  });
 
   // Function for each feature
   function onEachFeature(feature,layer) {
@@ -106,12 +138,12 @@ ready = function () {
 
 
   // Pull station maps based on city selected
-  $("#choose-city li a").click(function(e){
+  $(document).on('click', '#choose-city li a', function(e){
     // Selected City
     city = $(this).data('city');
 
-    // Set values of button to reflect current city
-    $(".city-name").text(city);
+    // Clear station info box
+    stationInfoBox.update();
 
     // Only get city station data if we don't already have it
     if (currentCity != city) {
@@ -122,6 +154,9 @@ ready = function () {
         success: function (data) {
           geojson = $.parseJSON(data);
 
+          $('.city-info .city-name').text(geojson[0].city);
+          $('.city-info .station-count').text(geojson[0].station_count);
+
           // Clear stationsLayer and add new data.
           stationsLayer.clearLayers().addData(geojson);
 
@@ -130,6 +165,8 @@ ready = function () {
 
         }
       });
+    }else{
+      map.fitBounds(stationsLayer.getBounds());
     }
 
     // Set currently selected city
@@ -139,8 +176,20 @@ ready = function () {
     e.preventDefault();
   });
 
-  // Add SF layer
-  $('*[data-city="San Francisco"]').click();
+  // Hide / show city selection box
+  var selectionViewTimer
+  $('.city-info').on('mouseover', function () {
+    $('.city-selection').slideDown();
+    window.clearTimeout(selectionViewTimer);
+  }).on('mouseout', function () {
+    selectionViewTimer = window.setTimeout(function () {
+      $('.city-selection').slideUp();      
+    }, 1500);
+  });
+
+  $('.city-selection').on('mouseover', function () {
+    window.clearTimeout(selectionViewTimer);
+  });
 
 }
 
