@@ -44,7 +44,7 @@ ready = function () {
   stationInfoBox.update = function (props) {
     this._div.innerHTML = '<h4>Station Information</h4>' +  (props ?
       '<p><strong>' + props.name + '</strong><br>' + props.bikes + ' bikes</p><p><strong>Activity</strong><br>' + Number(props.start_trips).toLocaleString('en') + ' pickups<br>' + Number(props.end_trips).toLocaleString('en') + ' dropoffs</p><p><strong>Popular Dropoff Station <i class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="top" title="Where people usually dropoff bikes they pickup at this station"></i></strong><br>' + props.popular_dropoff + '</p><p><strong>Popular Pickup Station <i class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="top" title="Where people usually pickup bikes they dropoff at this station"></i></strong><br>' + props.popular_pickup + '</p><p class="text-right small"><br><span class="disclaimer"><em>Data from August 29, 2013 to February 28, 2014</em></span></p>'
-      : '<p>Hover over or click a station</p>');
+      : '<p>Click a station for details</p>');
   };
 
 
@@ -75,7 +75,7 @@ ready = function () {
 
   // Method that we will use to update the control based on feature properties passed
   cityInfoBox.update = function (props) {
-    this._div.innerHTML = '<h4 class="current-city"><span class="city-name"></span></h4><p><span class="station-count"></span></p>';
+    this._div.innerHTML = (props ? '<h4 class="current-city">' + props.city + '</h4><p>' + props.station_count + ' bike stations</p><p><strong>Popular Pickup Station</strong><br>' + props.popular_pickup + '</p><p><strong>Popular Dropoff Station</strong><br>' + props.popular_dropoff + '</p>' : '<h4>Loading...</h4>');
   };
 
 
@@ -90,44 +90,21 @@ ready = function () {
 
   // Get City List
   var cityListHTML = '';
-  $.ajax({
-    dataType: 'text',
-    url: '/stations/index.json',
-    success: function (data) {
-      cities = $.parseJSON(data);
+  $.getJSON('/stations/index.json').done(function (cities) {
       cities.forEach(function(city) {
         cityListHTML += '<li><a href="#" data-city="' + city + '">' + city + '</a></li>';
       });
       $('#choose-city .dropdown-menu').prepend(cityListHTML);
       $('*[data-city="San Francisco"]').click();
-    }
   });
 
   // Function for each feature
-  var hideTimer;
   function onEachFeature(feature,layer) {
-    var mouseout = true;
     layer.on({
-      mouseover: function () {
-        stationInfoBox.update(layer.feature.properties);
-        mouseout = true;
-        // Instantiate tooltips
-        $('.glyphicon-info-sign').tooltip();
-        window.clearTimeout(hideTimer);
-      },
-      mouseout: function () {
-        if (mouseout === true) {
-          hideTimer = window.setTimeout(function () {
-            stationInfoBox.update();
-          },1000);
-        }
-      },
       click: function () {
         stationInfoBox.update(layer.feature.properties);
-        mouseout = false;
         // Instantiate tooltips
         $('.glyphicon-info-sign').tooltip();
-        window.clearTimeout(hideTimer);
       }
     })
   }
@@ -153,22 +130,17 @@ ready = function () {
     // Only get city station data if we don't already have it
     if (currentCity != city) {
       // Get list of stations
-      $.ajax({
-        dataType: 'text',
-        url: '/stations/by_city?city='+city,
-        success: function (data) {
-          geojson = $.parseJSON(data);
+      $.getJSON('/stations/by_city', {
+        city: city
+      }).done(function(stations) {
 
-          $('.city-info .city-name').text(geojson[0].city);
-          $('.city-info .station-count').text(geojson[0].station_count + ' stations');
+          cityInfoBox.update(stations[0]);
 
           // Clear stationsLayer and add new data.
-          stationsLayer.clearLayers().addData(geojson);
+          stationsLayer.clearLayers().addData(stations);
 
           // Recent map to fit marker bounds
           map.fitBounds(stationsLayer.getBounds());
-
-        }
       });
     }else{
       map.fitBounds(stationsLayer.getBounds());
