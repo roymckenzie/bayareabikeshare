@@ -24,10 +24,10 @@ class StationsController < ApplicationController
     }
 
     @stations.each do |s|
-      most_popular_end = s.start_trips.group_by(&:end_station_id).sort_by{|key, values| values.count}.reverse.first
-      most_popular_end_station = Station.find(most_popular_end[0])
-      most_popular_start = s.end_trips.group_by(&:start_station_id).sort_by{|key, values| values.count}.reverse.first
-      most_popular_start_station = Station.find(most_popular_start[0])
+      most_popular_end = s.start_trips.select('end_station_id').group_by(&:end_station_id).sort_by{|key, values| values.count}.reverse.first
+      most_popular_end_station = @stations.find(most_popular_end[0])
+      most_popular_start = s.end_trips.select('start_station_id').group_by(&:start_station_id).sort_by{|key, values| values.count}.reverse.first
+      most_popular_start_station = @stations.find(most_popular_start[0])
       @geojson << {
         type: 'Feature',
         geometry: {
