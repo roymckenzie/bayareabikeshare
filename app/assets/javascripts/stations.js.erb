@@ -21,7 +21,9 @@ var currentCity = '';
 ready = function () {
 
   // Instantiate map
-  var map = L.map('map');
+  var map = L.map('map', {
+    zoomControl: false,
+  });
 
 
   // Add attribution
@@ -65,7 +67,7 @@ ready = function () {
 
   // Add info window to map
   citySelectionBox.addTo(map);
-  
+
   // Add info window to map
   stationInfoBox.addTo(map);
 
@@ -97,6 +99,10 @@ ready = function () {
   var stationsLayer = L.geoJson(null, {
     onEachFeature: onEachFeature
   }).addTo(map);
+
+
+  // Zoom control
+  var zoomControl = L.control.zoom({position: 'bottomright'}).addTo(map)
 
 
   // Pull station maps based on city selected
