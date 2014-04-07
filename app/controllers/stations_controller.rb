@@ -8,7 +8,11 @@ class StationsController < ApplicationController
 
   def by_city
 
-    @stations = Station.where(landmark: params[:city])
+    if params[:city] == "All Cities";
+      @stations = Station.all
+    else
+      @stations = Station.where(landmark: params[:city])
+    end
     @geojson = Array.new
 
     @stations.each do |s|

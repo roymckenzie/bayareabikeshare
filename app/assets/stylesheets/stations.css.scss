@@ -2,20 +2,62 @@
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
 
+@import url(http://fonts.googleapis.com/css?family=Roboto:400,700,300);
+
+body {
+  color: #404040;
+  font-family: 'Roboto';
+}
+
 #header-site {
   position: relative;
   z-index: 1001;
 
+  .container-fluid {
+    padding: 0;
+
+    .col-sm-4:last-child {
+      padding: 0;
+    }
+  }
+
   .navbar {
+    background: none;
     border: none;
   }
+
+  #choose-city {
+    margin-right: 10px;
+
+    button {
+      background: #f8f8f8;
+      border: none;
+      border-radius: 2px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      margin-bottom: 0;
+      width: 300px;
+    }
+  }
+
+  .current-city {
+    color: #000;
+    text-shadow: 0 1px 1px rgba(255,255,255,.9);
+    width: 100%;
+  }
+
+  .navbar-brand {
+    color: #000;
+    margin-left: 40px;
+    text-shadow: 0 1px 1px rgba(255,255,255,.9);
+  }
 }
+
 #map {
   bottom: 0;
   left: 0;
   position: absolute;
   right: 0;
-  top: 50px;
+  top: 0;
 
   .station-info {
     background: #f8f8f8;
@@ -23,5 +65,26 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     padding: 10px 20px;
     width: 300px;
+
+    .disclaimer {
+      color: #aaa;
+    }
+
+    .glyphicon-info-sign {
+      color: #bbb;
+      margin-left: 2px;
+    }
+  }
+
+  .city-selection {
+    height: 31px;
+  }
+
+  .leaflet-control-attribution {
+    border-radius: 50%;
+
+    a {
+      display: none;
+    }
   }
 }

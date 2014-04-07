@@ -26,49 +26,69 @@ ready = function () {
 
   // Add attribution
   L.tileLayer('http://openmapsurfer.uni-hd.de/tiles/roads/x={x}&y={y}&z={z}', {
-    attribution: 'Imagery from <a href="http://giscience.uni-hd.de/">GIScience Research Group @ University of Heidelberg</a> &mdash; Map data <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
-    maxZoom: 18
-  }).addTo(map);
+    attribution: '<span class="hidden">Imagery from <a href="http://giscience.uni-hd.de/">GIScience Research Group @ University of Heidelberg</a> &mdash; Map data <a href="http://openstreetmap.org">OpenStreetMap</a> contributors</span><i class="glyphicon glyphicon-question-sign"></i>'}).addTo(map);
 
 
   // Add info box layer
-  var info = L.control();
+  var stationInfoBox = L.control();
 
   // Add info box for station information
-  info.onAdd = function (map) {
+  stationInfoBox.onAdd = function (map) {
     this._div = L.DomUtil.create('div', 'station-info'); // create a div with a class "info"
     this.update();
     return this._div;
   };
 
   // Method that we will use to update the control based on feature properties passed
-  info.update = function (props) {
+  stationInfoBox.update = function (props) {
     this._div.innerHTML = '<h4>Station Information</h4>' +  (props ?
-      '<p><strong>' + props.name + ' Station</strong><br>' + props.bikes + ' bikes</p><p><strong>From Aug 29, 2013 to Feb 28, 2014</strong><br>' + Number(props.start_trips).toLocaleString('en') + ' pickups<br>' + Number(props.end_trips).toLocaleString('en') + ' dropoffs</p><p><strong>Popular Destinations</strong><br>{station.name}</p><p><strong>Popular Origins</strong><br>{station.name}</p>'
-      : '<p>Hover over a station</p>');
+      '<p><strong>' + props.name + ' Station</strong><br>' + props.bikes + ' bikes</p><p><strong>Activity</strong><br>' + Number(props.start_trips).toLocaleString('en') + ' pickups<br>' + Number(props.end_trips).toLocaleString('en') + ' dropoffs</p><p><strong>Popular Dropoff Station <i class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="top" title="Where people usually dropoff bikes they pickup at this station"></i></strong><br>{station.name}</p><p><strong>Popular Pickup Station <i class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="top" title="Where people usually pickup bikes they dropoff at this station"></i></strong><br>{station.name}</p><p class="text-right small"><br><span class="disclaimer"><em>Data from August 29, 2013 to February 28, 2014</em></span></p>'
+      : '<p>Hover over or click a station</p>');
+  };
+
+
+  // Add info box layer
+  var citySelectionBox = L.control();
+
+  // Add info box for station information
+  citySelectionBox.onAdd = function (map) {
+    this._div = L.DomUtil.create('div', 'city-selection'); // create a div with a class "info"
+    this.update();
+    return this._div;
+  };
+
+  // Method that we will use to update the control based on feature properties passed
+  citySelectionBox.update = function (props) {
+    this._div.innerHTML = '&nbsp';
   };
 
 
   // Add info window to map
-  info.addTo(map);
-
+  citySelectionBox.addTo(map);
+  
+  // Add info window to map
+  stationInfoBox.addTo(map);
 
   // Function for each feature
   function onEachFeature(feature,layer) {
     var mouseout = true;
     layer.on({
       mouseover: function () {
-        info.update(layer.feature.properties);
-        mouseout = true
+        stationInfoBox.update(layer.feature.properties);
+        mouseout = true;
+        // Instantiate tooltips
+        $('.glyphicon-info-sign').tooltip();
       },
       mouseout: function () {
         if (mouseout === true) {
-          info.update();
+          stationInfoBox.update();
         }
       },
       click: function () {
-        info.update(layer.feature.properties);
-        mouseout = false
+        stationInfoBox.update(layer.feature.properties);
+        mouseout = false;
+        // Instantiate tooltips
+        $('.glyphicon-info-sign').tooltip();
       }
     })
   }
@@ -85,8 +105,7 @@ ready = function () {
     city = $(this).data('city');
 
     // Set values of button to reflect current city
-    $(".btn:first-child").text($(this).text());
-    $(".btn:first-child").val($(this).text());
+    $(".city-name").text(city);
 
     // Only get city station data if we don't already have it
     if (currentCity != city) {
