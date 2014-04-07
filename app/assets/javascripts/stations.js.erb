@@ -183,7 +183,7 @@ ready = function () {
 
   // Hide / show city selection box
   var selectionViewTimer;
-  $('.city-info').on('mouseover', function () {
+  $('.city-info').on('mouseover click', function () {
     $('.city-selection-button').slideDown();
     window.clearTimeout(selectionViewTimer);
   }).on('mouseout', function () {
@@ -199,6 +199,10 @@ ready = function () {
       $('.city-selection-button').slideUp();      
     }, 1500);
   });
+
+  $('.station-info').on('click', function () {
+    stationInfoBox.update();
+  })
 
 }
 
