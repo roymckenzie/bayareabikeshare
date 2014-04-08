@@ -1,19 +1,29 @@
 // Icons for map
-var bikeIcon = L.icon({
-  iconUrl: '<%= image_path "map-icon-unselected.png" %>',
-  iconSize: [30,39.75],
+var bikeIcon = L.MakiMarkers.icon({
+  icon: "bicycle",
+  color: "#0070CD",
+  size: "m",
   className: 'tooltip-marker'
 });
 
-var bikeIconHover = L.icon({
-  iconUrl: '<%= image_path "map-icon-cool.png" %>',
-  iconSize: [30,39.75],
+var bikeIconHover = L.MakiMarkers.icon({
+  icon: "bicycle",
+  color: "#0070CD",
+  size: "l",
   className: 'tooltip-marker'
 });
 
-var bikeIconSelected= L.icon({
-  iconUrl: '<%= image_path "map-icon-cool.png" %>',
-  iconSize: [40,53],
+var bikeIconSelected = L.MakiMarkers.icon({
+  icon: "bicycle",
+  color: "#0070CD",
+  size: "l",
+  className: 'tooltip-marker'
+});
+
+var bartIcon = L.MakiMarkers.icon({
+  icon: "rail",
+  color: "#0f6b88",
+  size: "l",
   className: 'tooltip-marker'
 });
 
@@ -22,10 +32,12 @@ var currentCity = '';
 var map;
 var stationsLayer;
 var heatmapLayer;
+var bartStationsLayer;
 var stationInfoBox;
-  var somedata;
+
 
 ready = function () {
+
 
   // Creat map object
   map = L.map('map', {
@@ -39,11 +51,14 @@ ready = function () {
     $('.tooltip-marker').tooltip('hide');
   })
 
+
   // Add layer for base tiles and attribution
   var baseLayer = L.tileLayer('http://openmapsurfer.uni-hd.de/tiles/roads/x={x}&y={y}&z={z}', {
     attribution: 'Imagery from <a href="http://giscience.uni-hd.de/">GIScience Research Group @ University of Heidelberg</a> &mdash; Map data <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
   }).addTo(map);
 
+
+  // Add layer for activity heatmap
   heatmapLayer = L.heatLayer().addTo(map);
   heatmapLayer.setOptions({blur:60,radius:42});
 
@@ -54,10 +69,16 @@ ready = function () {
     pointToLayer: pointToLayer
   }).addTo(map);
 
+  // Add layer for station markers
+  bartStationsLayer = L.geoJson(null, {
+    onEachFeature: onEachFeatureBart,
+    pointToLayer: pointToLayerBart
+  });
 
   // Create info box controls
   var zoomControl = L.control.zoom({position: 'bottomright'});
   var titleBox = L.control({position: 'topleft'});
+  var toggleBox = L.control({position: 'topleft'});
   var cityInfoBox = L.control();
   var citySelectionBox = L.control();
   stationInfoBox = L.control();
@@ -69,6 +90,36 @@ ready = function () {
     return this._div;
   };
 
+  // Add title box
+  toggleBox.onAdd = function () {
+    this._div = L.DomUtil.create('div', 'map-toggle-box');
+    this._div.innerHTML = '<div class="btn-group map-toggles" data-toggle="buttons"><label class="btn btn-default btn-heatmap active tooltip-toggle" data-title="Activity Heatmap"><input type="checkbox"><i class="maki-fire-station"></i></label><label class="btn btn-default btn-bike-stations active tooltip-toggle" data-title="Bike&nbsp;Share Stations"><input type="checkbox"><i class="maki-bicycle"></i></label><label class="btn btn-default btn-bart-stations tooltip-toggle" data-title="BART Stations"><input type="checkbox"><i class="maki-rail"></i></label></div>';
+    return this._div;
+  };
+
+  $(document).on('click', '.btn-heatmap', function () {
+    if($(this).hasClass('active')) {
+      map.removeLayer(heatmapLayer)
+    }else{
+      map.addLayer(heatmapLayer)      
+    }
+  });
+
+  $(document).on('click', '.btn-bike-stations', function () {
+    if($(this).hasClass('active')) {
+      map.removeLayer(stationsLayer)
+    }else{
+      map.addLayer(stationsLayer)      
+    }
+  });
+
+  $(document).on('click', '.btn-bart-stations', function () {
+    if($(this).hasClass('active')) {
+      map.removeLayer(bartStationsLayer)
+    }else{
+      map.addLayer(bartStationsLayer)      
+    }
+  });
   // Add info box for station information
   stationInfoBox.onAdd = function (map) {
     this._div = L.DomUtil.create('div', 'station-info');
@@ -105,6 +156,7 @@ ready = function () {
   // Add info windows to map
   zoomControl.addTo(map);
   titleBox.addTo(map);
+  toggleBox.addTo(map);
   cityInfoBox.addTo(map);
   citySelectionBox.addTo(map);
   stationInfoBox.addTo(map);
@@ -135,6 +187,13 @@ ready = function () {
         heatmapData = data[0];
         cityData = data[1][0];
         stationsData = data[2];
+        bartStationsData = data[3];
+
+        if(data[3].length == 0) {
+          $('.btn-bart-stations').addClass('disabled');
+        }else{
+          $('.btn-bart-stations').removeClass('disabled');
+        }
 
         cityInfoBox.update(cityData);
 
@@ -146,6 +205,7 @@ ready = function () {
 
         // Clear stationsLayer and add new data.
         stationsLayer.clearLayers().addData(stationsData);
+        bartStationsLayer.clearLayers().addData(bartStationsData);
 
 
         for (var i = 0; i < somedatalength; i++) {
@@ -191,6 +251,7 @@ ready = function () {
     }, 1500);
   });
 
+  $('.tooltip-toggle').tooltip({placement:'right',container: 'body'});
 }
 
 // Event actions for each station marker
@@ -225,6 +286,25 @@ var pointToLayer = function (feature,latLng) {
   return new L.Marker(latLng, {
     icon: bikeIcon,
     title: feature.properties.name,
+    riseOnHover: true
+  })
+}
+
+// Event actions for each BART station marker
+var onEachFeatureBart = function (feature,layer) {
+  var restoreMarker;
+  layer.on({
+    mouseover: function () {
+      $('.tooltip-marker').tooltip('hide');
+    }
+  });
+}
+
+// Marker changes to each BART station marker
+var pointToLayerBart = function (feature,latLng) {
+  return new L.Marker(latLng, {
+    icon: bartIcon,
+    title: feature.properties.name + ' BART',
     riseOnHover: true
   })
 }

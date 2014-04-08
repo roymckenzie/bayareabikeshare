@@ -3,11 +3,20 @@
 // You can use Sass (SCSS) here: http://sass-lang.com/
 
 @import url(http://fonts.googleapis.com/css?family=Roboto:400,700,300);
+@import url(http://weloveiconfonts.com/api/?family=maki);
+
+/* maki */
+[class*="maki-"]:before {
+  font-family: 'maki', sans-serif;
+  font-style: normal;
+}
 
 body {
   color: #404040;
   font-family: 'Roboto';
 }
+
+$babsBlue: #0070CD;
 
 #map {
   bottom: 0;
@@ -24,8 +33,96 @@ body {
     }
   }
 
+  .map-toggle-box {
+
+    .map-toggles {
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+
+      .btn {
+        background-color: #f8f8f8;
+        border: 0;
+        border-bottom: 1px solid #ccc;
+        border-radius: 0px;
+        display: block;
+        float: none;
+        font-size: 22px;
+        margin-left: 0;
+
+        &:hover {
+          border: auto;
+        }
+
+        &:active, &.active {
+          // box-shadow: inset 5px 0 5px -5px #CCC, inset 0 5px 5px -5px #CCC, inset -5px 0 5px -5px #CCC;
+    // box-shadow: inset 6px 0px 6px -6px rgba(0, 0, 0, 0.45), inset -6px 0px 6px -6px rgba(0, 0, 0, 0.45);
+          // &:before {
+          //   box-shadow: 13px 0 17px -15px inset;
+          //   content: " ";
+          //   height: 100%;
+          //   left: 0;
+          //   position: absolute;
+          //   top: 0;
+          //   width: 15px;
+          // }
+
+          // &:after {
+          //   box-shadow: -13px 0 17px -15px inset;
+          //   content: " ";
+          //   height: 100%;
+          //   position: absolute;
+          //   right: 0;
+          //   top: 0;
+          //   width: 15px;
+          // }
+        }
+
+        &.disabled{
+          background-color: #f8f8f8;
+          color: #ccc;
+          cursor: not-allowed;
+          opacity: 1;
+        }
+      }
+
+      .btn:first-child:not(:last-child) {
+        border-top-left-radius: 2px;
+        border-top-right-radius: 2px;
+      }
+
+      .btn:last-child:not(:first-child) {
+        border-bottom-left-radius: 2px;
+        border-bottom-right-radius: 2px;
+        border-bottom: 0;
+      }
+
+      .btn:not(:first-child):not(:last-child) {
+
+      }
+
+      .btn-heatmap.active {
+        background-color: #FF530D;
+        color: #fff;
+      }
+
+      .btn-bike-stations.active {
+        background-color: $babsBlue;
+        color: #fff;
+      }
+
+      .btn-bart-stations.active {
+        background-color: #0f6b88;
+        color: #fff;
+
+        &.disabled {
+          background-color: #f8f8f8;
+          color: #ccc;
+        }
+      }
+    }
+  }
+
   .station-info {
-    background: #f8f8f8;
+    background-color: #f8f8f8;
     border-radius: 2px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     padding: 10px 20px;
@@ -42,7 +139,7 @@ body {
   }
 
   .city-info {
-    background: #f8f8f8;
+    background-color: #f8f8f8;
     border-radius: 2px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     padding: 10px 20px;
@@ -61,7 +158,7 @@ body {
       margin-top: 10px;
 
       button {
-        background: #f8f8f8;
+        background-color: #f8f8f8;
         border: none;
         border-radius: 2px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.3);
@@ -70,7 +167,7 @@ body {
       }
 
       .dropdown-menu {
-        background: #f8f8f8;
+        background-color: #f8f8f8;
         border: 0;
         border-radius: 2px;
         border-top-left-radius: 0;
