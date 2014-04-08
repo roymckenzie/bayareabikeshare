@@ -14,6 +14,12 @@ CSV.foreach("#{Rails.root}/db/seeds/stations.csv", :headers => true) do |row|
    Station.create!(row.to_hash)
 end
 
+# Seed BART Stations model
+BartStation.delete_all
+CSV.foreach("#{Rails.root}/db/seeds/bart.csv", :headers => true) do |row|
+   BartStation.create!(row.to_hash)
+end
+
 # Seed Trip model
 Trip.delete_all
 CSV.foreach("#{Rails.root}/db/seeds/trips.csv", :headers => true) do |row|
