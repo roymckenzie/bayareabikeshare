@@ -1,18 +1,14 @@
-
 // Icons for map
-var lrgIcon = L.icon({
-  iconUrl: '<%= image_path "map-icon-hot.png" %>',
-  iconSize: [40,53]
-});
-
-var medIcon = L.icon({
-  iconUrl: '<%= image_path "map-icon-warm.png" %>',
-  iconSize: [30,39.75]
-});
-
-var smlIcon = L.icon({
+var bikeIcon = L.icon({
   iconUrl: '<%= image_path "map-icon-cool.png" %>',
-  iconSize: [20,26.5]
+  iconSize: [30,39.75],
+  className: 'tooltip-marker'
+});
+
+var bikeIconHover = L.icon({
+  iconUrl: '<%= image_path "map-icon-cool.png" %>',
+  iconSize: [40,53],
+  className: 'tooltip-marker'
 });
 
 var ready;
@@ -30,17 +26,27 @@ ready = function () {
     attribution: 'Imagery from <a href="http://giscience.uni-hd.de/">GIScience Research Group @ University of Heidelberg</a> &mdash; Map data <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'}).addTo(map);
 
 
-  // Add info box layer
+  // Add info box layers
+  var titleBox = L.control({position: 'topleft'});
   var stationInfoBox = L.control();
+  var cityInfoBox = L.control();
+  var citySelectionBox = L.control();
+
+  // Add title box
+  titleBox.onAdd = function () {
+    this._div = L.DomUtil.create('div', 'title-box');
+    this._div.innerHTML = '<h3>Bay Area Bike Share</h3>';
+    return this._div;
+  };
+
 
   // Add info box for station information
   stationInfoBox.onAdd = function (map) {
-    this._div = L.DomUtil.create('div', 'station-info'); // create a div with a class "info"
+    this._div = L.DomUtil.create('div', 'station-info');
     this.update();
     return this._div;
   };
 
-  // Method that we will use to update the control based on feature properties passed
   stationInfoBox.update = function (props) {
     this._div.innerHTML = '<h4>Station Information</h4>' +  (props ?
       '<p><strong>' + props.name + '</strong><br>' + props.bikes + ' bikes</p><p><strong>Activity</strong><br>' + Number(props.start_trips).toLocaleString('en') + ' pickups<br>' + Number(props.end_trips).toLocaleString('en') + ' dropoffs</p><p><strong>Popular Dropoff Station <i class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="top" title="Where people usually dropoff bikes they pickup at this station"></i></strong><br>' + props.popular_dropoff + '</p><p><strong>Popular Pickup Station <i class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-placement="top" title="Where people usually pickup bikes they dropoff at this station"></i></strong><br>' + props.popular_pickup + '</p><p class="text-right small"><br><span class="disclaimer"><em>Data from August 29, 2013 to February 28, 2014</em></span></p>'
@@ -48,70 +54,80 @@ ready = function () {
   };
 
 
-  // Add info box layer
-  var citySelectionBox = L.control();
-
-  // Add info box for station information
-  citySelectionBox.onAdd = function (map) {
-    this._div = L.DomUtil.create('div', 'city-selection'); // create a div with a class "info"
-    this.update();
-    return this._div;
-  };
-
-  // Method that we will use to update the control based on feature properties passed
-  citySelectionBox.update = function (props) {
-    this._div.innerHTML = '<div class="city-selection-button"><div class="btn-group pull-right" id="choose-city"><button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Change City&nbsp;&nbsp;<span class="caret"></span></button><ul class="dropdown-menu" role="menu"><li class="divider"></li><li><a href="#" data-city="All Cities">All Cities</a></li></ul></div></div>';
-  };
-
-  // Add info box layer
-  var cityInfoBox = L.control();
-
-  // Add info box for station information
+  // Add info box for city information
   cityInfoBox.onAdd = function (map) {
-    this._div = L.DomUtil.create('div', 'city-info'); // create a div with a class "info"
+    this._div = L.DomUtil.create('div', 'city-info');
     this.update();
     return this._div;
   };
 
-  // Method that we will use to update the control based on feature properties passed
   cityInfoBox.update = function (props) {
     this._div.innerHTML = (props ? '<h4 class="current-city">' + props.city + '</h4><p>' + props.station_count + ' bike stations</p><p><strong>Popular Pickup Station</strong><br>' + props.popular_pickup + '</p><p><strong>Popular Dropoff Station</strong><br>' + props.popular_dropoff + '</p>' : '<h4>Loading...</h4>');
   };
 
 
-  // Add info window to map
+  // Add info box for change city selection
+  citySelectionBox.onAdd = function (map) {
+    this._div = L.DomUtil.create('div', 'city-selection');
+    this._div.innerHTML = '<div class="city-selection-button"><div class="btn-group pull-right" id="choose-city"><button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Change City&nbsp;&nbsp;<span class="caret"></span></button><ul class="dropdown-menu" role="menu"><li class="divider"></li><li><a href="#" data-city="All Cities">All Cities</a></li></ul></div></div>';
+    return this._div;
+  };
+
+  // Add info windows to map
+  titleBox.addTo(map);
   cityInfoBox.addTo(map);
-
-  // Add info window to map
   citySelectionBox.addTo(map);
-
-  // Add info window to map
   stationInfoBox.addTo(map);
 
   // Get City List
   var cityListHTML = '';
-  $.getJSON('/stations/index.json').done(function (cities) {
-      cities.forEach(function(city) {
-        cityListHTML += '<li><a href="#" data-city="' + city + '">' + city + '</a></li>';
-      });
-      $('#choose-city .dropdown-menu').prepend(cityListHTML);
-      $('*[data-city="San Francisco"]').click();
+  $.getJSON('/stations/index.json')
+   .done(function (cities) {
+    cities.forEach(function(city) {
+      cityListHTML += '<li><a href="#" data-city="' + city + '">' + city + '</a></li>';
+    });
+    $('#choose-city .dropdown-menu').prepend(cityListHTML);
+    $('*[data-city="San Francisco"]').click();
   });
 
   // Function for each feature
+  var restoreMarker;
   function onEachFeature(feature,layer) {
     layer.on({
       click: function () {
+        resetAllIcons(stationsLayer);
+        layer.setIcon(bikeIconHover);
         stationInfoBox.update(layer.feature.properties);
         // Instantiate tooltips
         $('.glyphicon-info-sign').tooltip();
+      },
+      mouseover: function () {
+        layer.setIcon(bikeIconHover);
+      },
+      mouseout: function () {
+        restoreMarker = window.setTimeout(function () {
+          layer.setIcon(bikeIcon);
+        },50);
       }
+    });
+  }
+
+  map.on('layeradd', function () {
+    $('.tooltip-marker').tooltip({container: 'body'});
+  })
+
+  function pointToLayer(feature,latLng) {
+    return new L.Marker(latLng, {
+      icon: bikeIcon,
+      title: feature.properties.name,
+      riseOnHover: true
     })
   }
 
   // Map layer for station markers
   var stationsLayer = L.geoJson(null, {
-    onEachFeature: onEachFeature
+    onEachFeature: onEachFeature,
+    pointToLayer: pointToLayer
   }).addTo(map);
 
 
@@ -176,6 +192,13 @@ ready = function () {
     stationInfoBox.update();
   })
 
+}
+
+
+var resetAllIcons = function (layer) {
+  $.each(layer._layers, function(index, value) {
+      value.setIcon(bikeIcon)
+  });
 }
 
 $(document).ready(ready);
