@@ -1,36 +1,58 @@
 // Icons for map
 var bikeIcon = L.icon({
-  iconUrl: '<%= image_path "map-icon-cool.png" %>',
+  iconUrl: '<%= image_path "map-icon-unselected.png" %>',
   iconSize: [30,39.75],
   className: 'tooltip-marker'
 });
 
 var bikeIconHover = L.icon({
   iconUrl: '<%= image_path "map-icon-cool.png" %>',
-  iconSize: [40,53],
+  iconSize: [30,39.75],
   className: 'tooltip-marker'
 });
 
 var ready;
 var currentCity = '';
+var map;
+var stationsLayer;
+var heatmapLayer;
+var stationInfoBox;
+  var somedata;
 
 ready = function () {
 
-  // Instantiate map
-  var map = L.map('map', {
+  // Creat map object
+  map = L.map('map', {
     zoomControl: false,
   });
 
-  // Add attribution
-  L.tileLayer('http://openmapsurfer.uni-hd.de/tiles/roads/x={x}&y={y}&z={z}', {
-    attribution: 'Imagery from <a href="http://giscience.uni-hd.de/">GIScience Research Group @ University of Heidelberg</a> &mdash; Map data <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'}).addTo(map);
+  // Make sure Tooltips get instantiated on layer add
+  map.on('layeradd', function () {
+    $('.tooltip-marker').tooltip({container: 'body'});
+    $('.tooltip-marker').tooltip('hide');
+  })
+
+  // Add layer for base tiles and attribution
+  var baseLayer = L.tileLayer('http://openmapsurfer.uni-hd.de/tiles/roads/x={x}&y={y}&z={z}', {
+    attribution: 'Imagery from <a href="http://giscience.uni-hd.de/">GIScience Research Group @ University of Heidelberg</a> &mdash; Map data <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  heatmapLayer = L.heatLayer({blur:35,radius:45}).addTo(map);
 
 
-  // Add info box layers
+  // Add layer for station markers
+  stationsLayer = L.geoJson(null, {
+    onEachFeature: onEachFeature,
+    pointToLayer: pointToLayer
+  }).addTo(map);
+
+
+  // Create info box controls
+  var zoomControl = L.control.zoom({position: 'bottomright'});
   var titleBox = L.control({position: 'topleft'});
-  var stationInfoBox = L.control();
   var cityInfoBox = L.control();
   var citySelectionBox = L.control();
+  stationInfoBox = L.control();
 
   // Add title box
   titleBox.onAdd = function () {
@@ -38,7 +60,6 @@ ready = function () {
     this._div.innerHTML = '<h3>Bay Area Bike Share</h3>';
     return this._div;
   };
-
 
   // Add info box for station information
   stationInfoBox.onAdd = function (map) {
@@ -62,7 +83,7 @@ ready = function () {
   };
 
   cityInfoBox.update = function (props) {
-    this._div.innerHTML = (props ? '<h4 class="current-city">' + props.city + '</h4><p>' + props.station_count + ' bike stations</p><p><strong>Popular Pickup Station</strong><br>' + props.popular_pickup + '</p><p><strong>Popular Dropoff Station</strong><br>' + props.popular_dropoff + '</p>' : '<h4>Loading...</h4>');
+    this._div.innerHTML = (props ? '<h4 class="current-city">' + props.city + '</h4><p>' + props.bike_count + ' bikes at ' + props.station_count + ' bike stations</p><p><strong>Popular Pickup Station</strong><br>' + props.popular_pickup + '</p><p><strong>Popular Dropoff Station</strong><br>' + props.popular_dropoff + '</p>' : '<h4>Loading...</h4>');
   };
 
 
@@ -74,15 +95,16 @@ ready = function () {
   };
 
   // Add info windows to map
+  zoomControl.addTo(map);
   titleBox.addTo(map);
   cityInfoBox.addTo(map);
   citySelectionBox.addTo(map);
   stationInfoBox.addTo(map);
 
   // Get City List
-  var cityListHTML = '';
   $.getJSON('/stations/index.json')
    .done(function (cities) {
+    var cityListHTML = '';
     cities.forEach(function(city) {
       cityListHTML += '<li><a href="#" data-city="' + city + '">' + city + '</a></li>';
     });
@@ -90,73 +112,45 @@ ready = function () {
     $('*[data-city="San Francisco"]').click();
   });
 
-  // Function for each feature
-  var restoreMarker;
-  function onEachFeature(feature,layer) {
-    layer.on({
-      click: function () {
-        resetAllIcons(stationsLayer);
-        layer.setIcon(bikeIconHover);
-        stationInfoBox.update(layer.feature.properties);
-        // Instantiate tooltips
-        $('.glyphicon-info-sign').tooltip();
-      },
-      mouseover: function () {
-        layer.setIcon(bikeIconHover);
-      },
-      mouseout: function () {
-        restoreMarker = window.setTimeout(function () {
-          layer.setIcon(bikeIcon);
-        },50);
-      }
-    });
-  }
-
-  map.on('layeradd', function () {
-    $('.tooltip-marker').tooltip({container: 'body'});
-  })
-
-  function pointToLayer(feature,latLng) {
-    return new L.Marker(latLng, {
-      icon: bikeIcon,
-      title: feature.properties.name,
-      riseOnHover: true
-    })
-  }
-
-  // Map layer for station markers
-  var stationsLayer = L.geoJson(null, {
-    onEachFeature: onEachFeature,
-    pointToLayer: pointToLayer
-  }).addTo(map);
-
-
-  // Zoom control
-  var zoomControl = L.control.zoom({position: 'bottomright'}).addTo(map)
-
-
   // Pull station maps based on city selected
   $(document).on('click', '#choose-city li a', function(e){
     // Selected City
     city = $(this).data('city');
 
-    // Clear station info box
-    stationInfoBox.update();
-
     // Only get city station data if we don't already have it
     if (currentCity != city) {
+
       // Get list of stations
       $.getJSON('/stations/by_city', {
         city: city
-      }).done(function(stations) {
+      }).done( function (data) {
+        heatmapData = data[0];
+        cityData = data[1][0];
+        stationsData = data[2];
 
-          cityInfoBox.update(stations[0]);
+        cityInfoBox.update(cityData);
 
-          // Clear stationsLayer and add new data.
-          stationsLayer.clearLayers().addData(stations);
+        $('.tooltip-marker').tooltip('hide');
 
-          // Recent map to fit marker bounds
-          map.fitBounds(stationsLayer.getBounds());
+        heatmapLayer.setLatLngs(heatmapData);
+        somedatalength = data[0].length;
+
+
+        // Clear stationsLayer and add new data.
+        stationsLayer.clearLayers().addData(stationsData);
+
+
+        for (var i = 0; i < somedatalength; i++) {
+          // 3398 / 5
+          countAmount = Math.round(heatmapData[i][2]/(Math.pow(cityData.station_count,2)))
+          for (var x = 0; x < countAmount; x++) {
+            heatmapLayer.addLatLng([heatmapData[i][0],heatmapData[i][1]])
+          }
+        }
+        // Recent map to fit marker bounds
+        map.fitBounds(stationsLayer.getBounds());
+
+        $('.leaflet-marker-icon').first().click().tooltip('show');
       });
     }else{
       map.fitBounds(stationsLayer.getBounds());
@@ -165,9 +159,9 @@ ready = function () {
     // Set currently selected city
     currentCity = city;
 
-    // Ignore link click
     e.preventDefault();
   });
+
 
   // Hide / show city selection box
   var selectionViewTimer;
@@ -180,6 +174,7 @@ ready = function () {
     }, 1500);
   });
 
+  // Mouseover magic for city selection button
   $('.city-selection').on('mouseover', function () {
     window.clearTimeout(selectionViewTimer);
   }).on('mouseout', function () {
@@ -188,18 +183,51 @@ ready = function () {
     }, 1500);
   });
 
-  $('.station-info').on('click', function () {
-    stationInfoBox.update();
-  })
-
 }
 
+// Event actions for each station marker
+var onEachFeature = function (feature,layer) {
+  var restoreMarker;
+  layer.on({
+    click: function () {
+      resetAllIcons(stationsLayer);
+      layer.setIcon(bikeIconHover);
+      stationInfoBox.update(layer.feature.properties);
+      // Instantiate tooltips
+      $('.glyphicon-info-sign').tooltip();
+      restoreMarker = false;
+    },
+    mouseover: function () {
+      $('.tooltip-marker').tooltip('hide');
+      layer.setIcon(bikeIconHover);
+      restoreMarker = true;
+    },
+    mouseout: function () {
+      if (restoreMarker == true) {
+        restoreMarkerTimer = window.setTimeout(function () {
+          layer.setIcon(bikeIcon);
+        },50);
+      }
+    }
+  });
+}
 
+// Marker changes to each station marker
+var pointToLayer = function (feature,latLng) {
+  return new L.Marker(latLng, {
+    icon: bikeIcon,
+    title: feature.properties.name,
+    riseOnHover: true
+  })
+}
+
+// Reset marker icons
 var resetAllIcons = function (layer) {
   $.each(layer._layers, function(index, value) {
       value.setIcon(bikeIcon)
   });
 }
+
 
 $(document).ready(ready);
 $(document).on('page:load', ready);
