@@ -11,6 +11,12 @@ var bikeIconHover = L.icon({
   className: 'tooltip-marker'
 });
 
+var bikeIconSelected= L.icon({
+  iconUrl: '<%= image_path "map-icon-cool.png" %>',
+  iconSize: [40,53],
+  className: 'tooltip-marker'
+});
+
 var ready;
 var currentCity = '';
 var map;
@@ -23,8 +29,9 @@ ready = function () {
 
   // Creat map object
   map = L.map('map', {
-    zoomControl: false,
+    zoomControl: false
   });
+
 
   // Make sure Tooltips get instantiated on layer add
   map.on('layeradd', function () {
@@ -37,7 +44,8 @@ ready = function () {
     attribution: 'Imagery from <a href="http://giscience.uni-hd.de/">GIScience Research Group @ University of Heidelberg</a> &mdash; Map data <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
   }).addTo(map);
 
-  heatmapLayer = L.heatLayer({blur:35,radius:45}).addTo(map);
+  heatmapLayer = L.heatLayer().addTo(map);
+  heatmapLayer.setOptions({blur:60,radius:42});
 
 
   // Add layer for station markers
@@ -191,7 +199,7 @@ var onEachFeature = function (feature,layer) {
   layer.on({
     click: function () {
       resetAllIcons(stationsLayer);
-      layer.setIcon(bikeIconHover);
+      layer.setIcon(bikeIconSelected);
       stationInfoBox.update(layer.feature.properties);
       // Instantiate tooltips
       $('.glyphicon-info-sign').tooltip();
