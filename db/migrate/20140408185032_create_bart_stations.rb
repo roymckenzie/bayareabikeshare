@@ -11,8 +11,6 @@ class CreateBartStations < ActiveRecord::Migration
       t.string :county
       t.string :state
       t.string :zip
-
-      t.timestamps
     end
   end
 end

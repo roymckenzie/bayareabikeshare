@@ -20,6 +20,12 @@ CSV.foreach("#{Rails.root}/db/seeds/bart.csv", :headers => true) do |row|
    BartStation.create!(row.to_hash)
 end
 
+# Seed CalTrain Stations model
+CaltrainStation.delete_all
+CSV.foreach("#{Rails.root}/db/seeds/caltrain.csv", :headers => true) do |row|
+   CaltrainStation.create!(row.to_hash)
+end
+
 # Seed Trip model (since this takes so loooonggg only do it if there is no data)
 if Trip.count === 0
   CSV.foreach("#{Rails.root}/db/seeds/trips.csv", :headers => true) do |row|
