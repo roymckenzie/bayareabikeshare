@@ -16,9 +16,11 @@ class StationsController < ApplicationController
     if params[:city] == "All Cities";
       @stations = Station.all
       @bartStations = BartStation.all
+      @caltrainStations = CaltrainStation.all
     else
       @stations = Station.where(landmark: params[:city])
       @bartStations = BartStation.where(city: params[:city])
+      @caltrainStations = CaltrainStation.where(city: params[:city])
     end
 
     # Most popular drop off station for city
@@ -34,6 +36,7 @@ class StationsController < ApplicationController
     @cityJSON = Array.new
     @babsGeoJSON = Array.new
     @bartGeoJSON = Array.new
+    @caltrainGeoJSON = Array.new
     @payloadJSON = Array.new
 
     @intesity
@@ -71,7 +74,7 @@ class StationsController < ApplicationController
         properties: {
           name: s.name,
           bikes: s.dockcount,
-          icon: 'bicycle',
+          icon: 'bikeIcon',
           start_trips: s.start_trips.count,
           end_trips: s.end_trips.count,
           popular_dropoff: most_popular_end_station.name,
@@ -91,12 +94,30 @@ class StationsController < ApplicationController
           coordinates: [b.lon, b.lat]
         },
         properties: {
-          name: b.name,
+          name: b.name + ' Station',
+          icon: 'bartIcon'
         }
       }
     end
 
     @payloadJSON << @bartGeoJSON
+
+    @caltrainStations.each do |c|
+
+      @caltrainGeoJSON << {
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [c.lon, c.lat]
+        },
+        properties: {
+          name: c.name,
+          icon: 'caltrainIcon',
+        }
+      }
+    end
+
+    @payloadJSON << @caltrainGeoJSON
 
     respond_to do |format|
       format.json { render json: @payloadJSON}

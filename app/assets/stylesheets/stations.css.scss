@@ -48,32 +48,27 @@ $babsBlue: #0070CD;
         font-size: 22px;
         margin-left: 0;
 
+        .icon {
+          background-repeat: no-repeat;
+          display: inline-block;
+          -webkit-filter: grayscale(1);
+          filter: grayscale(1);
+          height: 29px;
+          vertical-align: bottom;
+          width: 50px;
+        }
+
         &:hover {
           border: auto;
         }
 
-        &:active, &.active {
-          // box-shadow: inset 5px 0 5px -5px #CCC, inset 0 5px 5px -5px #CCC, inset -5px 0 5px -5px #CCC;
-    // box-shadow: inset 6px 0px 6px -6px rgba(0, 0, 0, 0.45), inset -6px 0px 6px -6px rgba(0, 0, 0, 0.45);
-          // &:before {
-          //   box-shadow: 13px 0 17px -15px inset;
-          //   content: " ";
-          //   height: 100%;
-          //   left: 0;
-          //   position: absolute;
-          //   top: 0;
-          //   width: 15px;
-          // }
+        &.active, &:active {
+          background: #eee;
 
-          // &:after {
-          //   box-shadow: -13px 0 17px -15px inset;
-          //   content: " ";
-          //   height: 100%;
-          //   position: absolute;
-          //   right: 0;
-          //   top: 0;
-          //   width: 15px;
-          // }
+          .icon {
+            -webkit-filter: grayscale(0);
+            filter: grayscale(0)
+          }
         }
 
         &.disabled{
@@ -104,18 +99,24 @@ $babsBlue: #0070CD;
         color: #fff;
       }
 
-      .btn-bike-stations.active {
-        background-color: $babsBlue;
-        color: #fff;
+      .btn-bike-stations {
+
+        .icon {
+          background-image: image-url('logo-babs.png');
+        }
       }
 
-      .btn-bart-stations.active {
-        background-color: #0f6b88;
-        color: #fff;
+      .btn-bart-stations {
 
-        &.disabled {
-          background-color: #f8f8f8;
-          color: #ccc;
+        .icon {
+          background-image: image-url('logo-bart.png');
+        }
+      }
+
+      .btn-caltrain-stations {
+
+        .icon {
+          background-image: image-url('logo-caltrain.png');
         }
       }
     }

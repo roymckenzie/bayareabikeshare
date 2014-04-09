@@ -11,24 +11,29 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140408185032) do
+ActiveRecord::Schema.define(version: 20140409063253) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "bart_stations", force: true do |t|
-    t.string   "name"
-    t.string   "id_abbr"
-    t.string   "abbr"
-    t.float    "lat"
-    t.float    "lon"
-    t.string   "address"
-    t.string   "city"
-    t.string   "county"
-    t.string   "state"
-    t.string   "zip"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.string "name"
+    t.string "id_abbr"
+    t.string "abbr"
+    t.float  "lat"
+    t.float  "lon"
+    t.string "address"
+    t.string "city"
+    t.string "county"
+    t.string "state"
+    t.string "zip"
+  end
+
+  create_table "caltrain_stations", force: true do |t|
+    t.string "name"
+    t.string "city"
+    t.float  "lat"
+    t.float  "lon"
   end
 
   create_table "stations", force: true do |t|

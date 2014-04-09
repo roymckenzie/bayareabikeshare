@@ -1,7 +1,8 @@
 class CreateCaltrainStations < ActiveRecord::Migration
   def change
     create_table :caltrain_stations do |t|
-      t.name :string
+      t.string :name
+      t.string :city
       t.float :lat
       t.float :lon
     end
