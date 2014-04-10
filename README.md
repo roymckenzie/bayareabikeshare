@@ -17,8 +17,9 @@ Features
 
 Data Sources
 ----------
-[BART station data](https://github.com/enjalot/bart/tree/master/data)
-[Bay Area Bike Share data](http://bayareabikeshare.com/datachallenge)
+- [Bay Area Bike Share data](http://bayareabikeshare.com/datachallenge)
+- [BART station data](https://github.com/enjalot/bart/tree/master/data)
+- [Caltrain station data](https://github.com/jcwong86/2012USTransitAgencyData/blob/master/output/caltrain_rail_stop_level.csv)
 
 Questions?
 ----------
