@@ -23,11 +23,7 @@ end
 # Seed CalTrain Stations model
 CaltrainStation.delete_all
 CSV.foreach("#{Rails.root}/db/seeds/caltrain.csv", :headers => true) do |row|
-   CaltrainStation.create!({
-      :name => row[5],
-      :lat => row[6],
-      :lon => row[7]
-   })
+   CaltrainStation.create!(row.to_hash)
 end
 
 # Seed Trip model (since this takes so loooonggg only do it if there is no data)
